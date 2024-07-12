@@ -29,6 +29,10 @@ func (o *options) Validate() []error {
 	return errs
 }
 
+func (o *options) Complete() error {
+	return o.RedisOption.Complete()
+}
+
 type MySQLOptions struct {
 	host *string
 }
@@ -62,6 +66,11 @@ func (r *RedisOption) Validate() []error {
 	return errs
 }
 
+func (r *RedisOption) Complete() error {
+	fmt.Println("call complete")
+	return fmt.Errorf("complete error")
+}
+
 func main() {
 	//namedFlagSets := &app.NamedFlagSets{}
 	//nfs := namedFlagSets.FlagSet("global")
@@ -75,7 +84,7 @@ func main() {
 	app.NewApp("test", "config",
 		//app.WithSilence(),
 		app.WithNoVersion(),
-		//app.WithNoConfig(),
+		app.WithNoConfig(),
 		app.WithOptions(o),
 		app.WithRunFunc(run),
 	).Run()
