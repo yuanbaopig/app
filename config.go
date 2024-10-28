@@ -20,7 +20,7 @@ const configFlagName = "config"
 
 var cfgFile string
 
-//nolint: gochecknoinits
+// nolint: gochecknoinits
 func init() {
 	pflag.StringVarP(&cfgFile, "config", "c", cfgFile, "Read configuration from specified `FILE`, "+
 		"support JSON, TOML, YAML, HCL, or Java properties formats.")
@@ -60,8 +60,8 @@ func addConfigFlag(basename string, fs *pflag.FlagSet) {
 	})
 }
 
-func printConfig() {
-	if keys := viper.AllKeys(); len(keys) > 0 {
+func printConfig(allKeys []string) {
+	if keys := allKeys; len(keys) > 0 {
 		fmt.Printf("%v Configuration items:\n", progressMessage)
 		table := uitable.New()
 		table.Separator = " "

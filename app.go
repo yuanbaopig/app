@@ -7,17 +7,18 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/fatih/color"
+	"github.com/marmotedu/errors"
 	"github.com/moby/term"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"github.com/yuanbaopig/app/fname"
 	"github.com/yuanbaopig/app/version"
 	"github.com/yuanbaopig/app/version/verflag"
 	"io"
 	"os"
-
-	"github.com/fatih/color"
-	"github.com/marmotedu/errors"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"strings"
 )
 
 var (
@@ -200,7 +201,8 @@ func (a *App) buildCommand() {
 	var namedFlagSets fname.NamedFlagSets
 	if a.options != nil {
 		namedFlagSets = a.options.Flags()
-		fs := cmd.Flags()
+		//fs := cmd.Flags()
+		fs := cmd.PersistentFlags()
 		for _, f := range namedFlagSets.FlagSets {
 			fs.AddFlagSet(f)
 		}
@@ -252,7 +254,17 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 		verflag.PrintAndExitIfRequested()
 	}
 
+	var pb strings.Builder // 记录viper映射config前的flags建值
+	var afterConfig []string
+
 	if !a.noConfig {
+		afterConfig = viper.AllKeys() // 配置文件的建值
+
+		pbF := func(flag *pflag.Flag) {
+			pb.WriteString(fmt.Sprintf("FLAG: --%s=%q\n", flag.Name, flag.Value))
+		}
+		cmd.Flags().VisitAll(pbF)
+
 		if err := viper.BindPFlags(cmd.Flags()); err != nil {
 			return err
 		}
@@ -264,13 +276,15 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 
 	if !a.silence {
 		printWorkingDir()
-		fname.PrintFlags(cmd.Flags())
+		fmt.Printf(pb.String())
+
 		fmt.Printf("%v Starting %s ...\n", progressMessage, a.name)
 		if !a.noVersion {
 			fmt.Printf("%v Version: `%s`\n", progressMessage, version.Get().ToJSON())
 		}
 		if !a.noConfig {
 			fmt.Printf("%v Config file used: `%s`\n", progressMessage, viper.ConfigFileUsed())
+			printConfig(afterConfig)
 		}
 	}
 	if a.options != nil {
