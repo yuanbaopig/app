@@ -255,13 +255,25 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	var pb strings.Builder // 记录viper映射config前的flags建值
-	var afterConfig []string
+	//var afterConfig []string
+	if !a.silence { // config配置必须在bind flags之前打印
+		if !a.noConfig {
+			fmt.Printf("%v Config file used: `%s`\n", progressMessage, viper.ConfigFileUsed())
+			afterConfig := viper.AllKeys() // 配置文件的建值
+			printConfig(afterConfig)
+		}
+
+	}
 
 	if !a.noConfig {
-		afterConfig = viper.AllKeys() // 配置文件的建值
+		//afterConfig = viper.AllKeys() // 配置文件的建值
 
 		pbF := func(flag *pflag.Flag) {
-			pb.WriteString(fmt.Sprintf("FLAG: --%s=%q\n", flag.Name, flag.Value))
+			//pb.WriteString(fmt.Sprintf("FLAG: --%s=%q\n", flag.Name, flag.Value))
+			if flag.Changed || flag.Value.String() != flag.DefValue {
+				// 只有在 flag 被设置，或者值与默认值不同的情况下才调用 pb.WriteString
+				pb.WriteString(fmt.Sprintf("FLAG: --%s=%q\n", flag.Name, flag.Value))
+			}
 		}
 		cmd.Flags().VisitAll(pbF)
 
@@ -276,16 +288,17 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 
 	if !a.silence {
 		printWorkingDir()
+		fmt.Printf("%v Flags items:\n", progressMessage)
 		fmt.Printf(pb.String())
 
 		fmt.Printf("%v Starting %s ...\n", progressMessage, a.name)
 		if !a.noVersion {
 			fmt.Printf("%v Version: `%s`\n", progressMessage, version.Get().ToJSON())
 		}
-		if !a.noConfig {
-			fmt.Printf("%v Config file used: `%s`\n", progressMessage, viper.ConfigFileUsed())
-			printConfig(afterConfig)
-		}
+		//if !a.noConfig {
+		//	fmt.Printf("%v Config file used: `%s`\n", progressMessage, viper.ConfigFileUsed())
+		//	printConfig(afterConfig)
+		//}
 	}
 	if a.options != nil {
 		if err := a.applyOptionRules(); err != nil {
