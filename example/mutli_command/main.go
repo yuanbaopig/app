@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/yuanbaopig/app"
 	"github.com/yuanbaopig/app/fname"
@@ -75,7 +74,7 @@ func main() {
 		app.WithNoConfig(),
 		app.WithDescription("commandDesc"),
 		app.WithAddCommand(redisCmd),
-		app.WithRunFunc(func(cmd *cobra.Command, args []string) error {
+		app.WithRunFunc(func(basename string) error {
 			fmt.Println("root command")
 			return nil
 		}))

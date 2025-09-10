@@ -91,7 +91,7 @@ func WithOptions(opt CliOptions) Option {
 }
 
 // RunFunc defines the application's startup callback function.
-type RunFunc func(cmd *cobra.Command, args []string) error
+type RunFunc func(basename string) error
 
 // WithRunFunc is used to set the application startup callback function option.
 func WithRunFunc(run RunFunc) Option {
@@ -307,7 +307,7 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	}
 	// run application
 	if a.runFunc != nil {
-		return a.runFunc(cmd, args)
+		return a.runFunc(a.basename)
 	}
 
 	return nil
